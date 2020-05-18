@@ -1,0 +1,54 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+ 
+
+```{r}
+
+library(ISLR)
+library (glmnet )
+
+D <- College
+D <- D[,-1]
+D <- na.omit(D)
+D$Apps
+print(dim(D)[1])
+print(dim(D)[1]*(2/3))
+index <- sample(dim(D)[1],dim(D)[1]*(2/3),replace=FALSE)
+D.train <- D[index,]
+D.test <- D[-index,]
+D.train
+D
+summary(D)
+reg <- lm(Apps~.,D.train)
+y_hat <- predict(reg,D.test,interval='prediction',se.fit=TRUE)
+print(mean(y_hat$se.fit))
+
+```
+
+```{r}
+
+grid =10^ seq (10,-2, length =100)
+
+ridge.mod =glmnet (model.matrix(Apps∼.,D.train),D.train$Apps,alpha =0, lambda =grid)
+lasso.mod =glmnet (model.matrix(Apps∼.,D.train),D.train$Apps,alpha =1, lambda =grid)
+
+
+cv.r <- cv.glmnet (model.matrix(Apps∼.,D.train),D.train$Apps,alpha =0)
+cv.l  <- cv.glmnet (model.matrix(Apps∼.,D.train),D.train$Apps,alpha =1)
+
+
+blr = cv.r$lambda .min
+ridge.pred=predict (ridge.mod ,s=blr ,newx=model.matrix(Apps∼.,D.test))
+mean(( ridge.pred -D.test$Apps)^2)
+
+
+
+bll = cv.l$lambad.min
+lasso.pred=predict (lasso.mod ,s=bll,newx=model.matrix(Apps∼.,D.test))
+mean(( lasso.pred -D.test$Apps)^2)
+
+
+```
+

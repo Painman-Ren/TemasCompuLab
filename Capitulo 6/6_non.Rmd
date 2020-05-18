@@ -1,0 +1,59 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+6.11 boston 
+
+```{r}
+library(ISLR)
+library(MASS)
+library(glmnet)
+library(leaps)
+
+D <- Boston
+D$chas <- as.factor(D$chas)
+n=dim(Boston)[1]
+k=25
+v=dim(Boston)[2]-1
+MSE = data.frame("id" = "1","mse" = 1,"vnum" = 1,stringsAsFactors = FALSE)
+ver=TRUE
+folds <- cut(1:n,k,labels=FALSE)
+
+for (i in 1:k) {
+    index <- folds == i
+    D.train <- D[!index,]
+    D.test <- D[index,]
+    regfit.full=regsubsets (crim∼.,data=D.train,nvmax=dim(Boston)[2])
+    mat <- summary(regfit.full)$which
+    for(r in 1:dim(mat)[1] ){
+      id <- names(mat[r,-1])[which(mat[r,-1]==TRUE)]
+      reg <- lm(D.train$crim~.,data=D.train[,mat[r,]])
+      y_hat <- predict(reg,D.test,interval='prediction',se.fit=TRUE)
+      MSE <- rbind(MSE,c(paste(id,collapse=" "),mean(y_hat$se.fit),length(id)))
+    }
+}
+
+```
+
+
+```{r}
+
+
+MSE <- MSE[-1,]
+MSE$mse <- as.numeric(MSE$mse)
+MSE$vnum <- as.numeric(MSE$vnum)
+MSE$id <- as.factor(MSE$id)
+
+
+```
+
+```{r}
+library(dplyr)
+MSE[1,]
+
+MSE %>%  group_by(id,vnum) %>% summarize(meanMSE = mean(mse),countID = n())  %>% arrange(meanMSE,vnum)
+
+
+```
+
